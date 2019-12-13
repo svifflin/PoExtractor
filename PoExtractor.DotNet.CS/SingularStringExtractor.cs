@@ -10,7 +10,7 @@ namespace PoExtractor.DotNet.CS {
     /// Extracts <see cref="LocalizableStringOccurence"/> with the singual text from the C# AST node
     /// </summary>
     /// <remarks>
-    /// The localizable string is identified by the name convention - T["TEXT TO TRANSLATE"]
+    /// The localizable string is identified by the name convention - T("TEXT TO TRANSLATE")
     /// </remarks>
     public class SingularStringExtractor : LocalizableStringExtractor<SyntaxNode> {
         public SingularStringExtractor(IMetadataProvider<SyntaxNode> metadataProvider) : base(metadataProvider) {
@@ -19,7 +19,7 @@ namespace PoExtractor.DotNet.CS {
         public override bool TryExtract(SyntaxNode node, out LocalizableStringOccurence result) {
             result = null;
 
-            if (node is ElementAccessExpressionSyntax accessor &&
+            if (node is InvocationExpressionSyntax accessor &&
                 accessor.Expression is IdentifierNameSyntax identifierName &&
                 LocalizerAccessors.LocalizerIdentifiers.Contains(identifierName.Identifier.Text) &&
                 accessor.ArgumentList != null) {
