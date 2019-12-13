@@ -19,36 +19,88 @@ namespace PoExtractor.DotNet.CS {
         public override bool TryExtract(SyntaxNode node, out LocalizableStringOccurence result) {
             result = null;
 
-            if (node is InvocationExpressionSyntax invocation &&
-                invocation.Expression is MemberAccessExpressionSyntax accessor &&
-                accessor.Expression is IdentifierNameSyntax identifierName &&
+            dynamic accessor;
+            SimpleNameSyntax identifierName;
+            var invocation = node as InvocationExpressionSyntax;
+            switch (invocation?.Expression)
+            {
+                case InvocationExpressionSyntax syntax:
+                    accessor = syntax;
+                    identifierName = accessor.Expression as IdentifierNameSyntax ??
+                                     (accessor.Expression as MemberAccessExpressionSyntax)?.Name as IdentifierNameSyntax;
+                    break;
+                case MemberAccessExpressionSyntax syntax:
+                    accessor = syntax;
+                    identifierName = accessor.Expression as IdentifierNameSyntax ??
+                                     (accessor.Expression as MemberAccessExpressionSyntax)?.Name as IdentifierNameSyntax;
+                    break;
+                default:
+                    return false;
+            }
+            if (identifierName != null &&
                 LocalizerAccessors.LocalizerIdentifiers.Contains(identifierName.Identifier.Text) &&
-                accessor.Name.Identifier.Text == "Plural") {
-
+                accessor.Name.Identifier.Text == "Plural")
+            {
                 var arguments = invocation.ArgumentList.Arguments;
-                if (arguments.Count >= 2 &&
-                    arguments[1].Expression is ArrayCreationExpressionSyntax array) {
-                    if (array.Type.ElementType is PredefinedTypeSyntax arrayType &&
-                        arrayType.Keyword.Text == "string" &&
-                        array.Initializer.Expressions.Count >= 2 &&
-                        array.Initializer.Expressions[0] is LiteralExpressionSyntax singularLiteral && singularLiteral.IsKind(SyntaxKind.StringLiteralExpression) &&
-                        array.Initializer.Expressions[1] is LiteralExpressionSyntax pluralLiteral && pluralLiteral.IsKind(SyntaxKind.StringLiteralExpression)) {
+                if (arguments.Count < 2)
+                    return false;
 
-                        result = this.CreateLocalizedString(singularLiteral.Token.ValueText, pluralLiteral.Token.ValueText, node);
-                        return true;
-                    }
-                } else {
-                    if (arguments.Count >= 3 &&
-                        arguments[1].Expression is LiteralExpressionSyntax singularLiteral && singularLiteral.IsKind(SyntaxKind.StringLiteralExpression) &&
-                        arguments[2].Expression is LiteralExpressionSyntax pluralLiteral && pluralLiteral.IsKind(SyntaxKind.StringLiteralExpression)) {
+                result = arguments[0].Expression is not LiteralExpressionSyntax ? FromOrchardCore(node, arguments) : FromOrchardCms(node, arguments);
+            }
 
-                        result = this.CreateLocalizedString(singularLiteral.Token.ValueText, pluralLiteral.Token.ValueText, node);
-                        return true;
-                    }
+            return result != null;
+        }
+        
+        private LocalizableStringOccurence FromOrchardCms(SyntaxNode node, SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            LocalizableStringOccurence result = null;
+
+            if (arguments.Count >= 2 &&
+                arguments[0].Expression is ArrayCreationExpressionSyntax array) {
+                if (array.Type.ElementType is PredefinedTypeSyntax arrayType &&
+                    arrayType.Keyword.Text == "string" &&
+                    array.Initializer.Expressions.Count >= 2 &&
+                    array.Initializer.Expressions[0] is LiteralExpressionSyntax singularLiteral && singularLiteral.IsKind(SyntaxKind.StringLiteralExpression) &&
+                    array.Initializer.Expressions[1] is LiteralExpressionSyntax pluralLiteral && pluralLiteral.IsKind(SyntaxKind.StringLiteralExpression)) {
+
+                    result = this.CreateLocalizedString(singularLiteral.Token.ValueText, pluralLiteral.Token.ValueText, node);
+                }
+            } else {
+                if (arguments.Count >= 3 &&
+                    arguments[^3].Expression is LiteralExpressionSyntax singularLiteral && singularLiteral.IsKind(SyntaxKind.StringLiteralExpression) &&
+                    arguments[^2].Expression is LiteralExpressionSyntax pluralLiteral && pluralLiteral.IsKind(SyntaxKind.StringLiteralExpression)) {
+
+                    result = this.CreateLocalizedString(singularLiteral.Token.ValueText, pluralLiteral.Token.ValueText, node);
                 }
             }
 
-            return false;
+            return result;
+        }
+        
+        private LocalizableStringOccurence FromOrchardCore(SyntaxNode node, SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            LocalizableStringOccurence result = null;
+
+            if (arguments.Count >= 2 &&
+                arguments[1].Expression is ArrayCreationExpressionSyntax array) {
+                if (array.Type.ElementType is PredefinedTypeSyntax arrayType &&
+                    arrayType.Keyword.Text == "string" &&
+                    array.Initializer.Expressions.Count >= 2 &&
+                    array.Initializer.Expressions[0] is LiteralExpressionSyntax singularLiteral && singularLiteral.IsKind(SyntaxKind.StringLiteralExpression) &&
+                    array.Initializer.Expressions[1] is LiteralExpressionSyntax pluralLiteral && pluralLiteral.IsKind(SyntaxKind.StringLiteralExpression)) {
+
+                    result = this.CreateLocalizedString(singularLiteral.Token.ValueText, pluralLiteral.Token.ValueText, node);
+                }
+            } else {
+                if (arguments.Count >= 3 &&
+                    arguments[1].Expression is LiteralExpressionSyntax singularLiteral && singularLiteral.IsKind(SyntaxKind.StringLiteralExpression) &&
+                    arguments[2].Expression is LiteralExpressionSyntax pluralLiteral && pluralLiteral.IsKind(SyntaxKind.StringLiteralExpression)) {
+
+                    result = this.CreateLocalizedString(singularLiteral.Token.ValueText, pluralLiteral.Token.ValueText, node);
+                }
+            }
+
+            return result;
         }
     }
 }

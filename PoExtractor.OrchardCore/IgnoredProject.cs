@@ -2,12 +2,11 @@
 {
     public class IgnoredProject
     {
-        public static readonly string Cms = "src\\OrchardCore.Cms.Web";
+        private const string Core = "Core";
+        private const string Root = "Orchard.Web";
+        private const string Cms = "Modules\\Orchard.";
+        private const string Syscache = "Modules\\SysCache";
 
-        public static readonly string Samples = "src\\OrchardCore.Mvc.Web";
-
-        public static readonly string Test = "test";
-
-        public static string[] ToList() => new[] { Cms, Samples, Test };
+        public static string[] ToList() => new[] { Core, Cms, Syscache};
     }
 }

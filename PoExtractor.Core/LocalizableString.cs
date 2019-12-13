@@ -7,7 +7,7 @@ namespace PoExtractor.Core {
     public class LocalizableString {
 
         /// <summary>
-        /// Gets or sets context of the 
+        /// Gets or sets context
         /// </summary>
         public string Context { get; set; }
 

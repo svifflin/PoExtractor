@@ -5,16 +5,12 @@ namespace PoExtractor.Core {
     /// Represents collection of the all localizable strings in the project. Localizable strings with the same values are merged.
     /// </summary>
     public class LocalizableStringCollection {
-        private Dictionary<string, LocalizableString> _values;
+        private readonly Dictionary<string, LocalizableString> _values;
 
         /// <summary>
         /// Gets collection of all <see cref="LocalizableString"/> in the project
         /// </summary>
-        public IEnumerable<LocalizableString> Values {
-            get {
-                return _values.Values;
-            }
-        }
+        public IEnumerable<LocalizableString> Values => _values.Values;
 
         /// <summary>
         /// Creates a new empty instance of the <see cref="LocalizableStringCollection" /> class
