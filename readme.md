@@ -29,7 +29,7 @@ or
 
 ## Usage
 
-`extractpo inputpath outputpath`
+`dotnet PoExtractor.dll inputpath outputpath`
 
 or
 
